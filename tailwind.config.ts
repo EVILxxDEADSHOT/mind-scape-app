@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -46,6 +47,14 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        // Mood tracking colors
+        mood: {
+          happy: "hsl(var(--mood-happy))",
+          sad: "hsl(var(--mood-sad))",
+          angry: "hsl(var(--mood-angry))",
+          anxious: "hsl(var(--mood-anxious))",
+          calm: "hsl(var(--mood-calm))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -84,6 +93,17 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-soft": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in": "fadeIn 0.5s ease-in-out",
+      },
+      backgroundImage: {
+        "gradient-wellness": "var(--gradient-wellness)",
+        "gradient-calm": "var(--gradient-calm)",
+        "gradient-mood": "var(--gradient-mood)",
+      },
+      boxShadow: {
+        "wellness": "var(--shadow-wellness)",
+        "mood": "var(--shadow-mood)",
       },
     },
   },
