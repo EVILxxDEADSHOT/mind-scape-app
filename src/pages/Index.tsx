@@ -1,34 +1,49 @@
-import { useState } from "react";
-import { LoginForm } from "@/components/LoginForm";
+import { SignedIn, SignedOut, SignIn, UserButton, useUser } from "@clerk/clerk-react";
 import { MoodTracker } from "@/components/MoodTracker";
 
 const Index = () => {
-  const [user, setUser] = useState<string | null>(null);
-
-  const handleLogin = (email: string) => {
-    setUser(email);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  if (!user) {
-    return <LoginForm onLogin={handleLogin} />;
-  }
+  const { user } = useUser();
 
   return (
-    <div className="relative">
-      <MoodTracker />
-      
-      {/* Logout button */}
-      <button
-        onClick={handleLogout}
-        className="fixed top-4 right-4 text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 bg-card/80 backdrop-blur-sm px-3 py-1 rounded-full shadow-wellness"
-      >
-        Sign Out
-      </button>
-    </div>
+    <>
+      <SignedOut>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Wellness Tracker
+              </h1>
+              <p className="text-muted-foreground">Track your mood, find your balance</p>
+            </div>
+            <SignIn 
+              appearance={{
+                elements: {
+                  rootBox: "mx-auto",
+                  card: "shadow-wellness"
+                }
+              }}
+            />
+          </div>
+        </div>
+      </SignedOut>
+
+      <SignedIn>
+        <div className="relative">
+          <MoodTracker />
+          
+          {/* User button in top right */}
+          <div className="fixed top-4 right-4 z-50">
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "w-10 h-10"
+                }
+              }}
+            />
+          </div>
+        </div>
+      </SignedIn>
+    </>
   );
 };
 
