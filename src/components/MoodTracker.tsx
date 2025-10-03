@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { MoodButton } from "./MoodButton";
 import { MoodQuotes } from "./MoodQuotes";
 import { TherapistSection } from "./TherapistSection";
@@ -8,6 +9,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, TrendingUp, Heart, Users, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "./ThemeToggle";
 
 type MoodType = "happy" | "sad" | "angry" | "anxious" | "calm";
 
@@ -25,19 +28,77 @@ const moods = [
 ];
 
 export const MoodTracker = () => {
+  const { user } = useUser();
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  // Load moods from database on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadMoods();
+    }
+  }, [user?.id]);
+
+  const loadMoods = async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('moods')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Error loading moods:', error);
+      toast({
+        title: "Error loading moods",
+        description: "Could not load your mood history.",
+        variant: "destructive",
+      });
+    } else if (data) {
+      const entries: MoodEntry[] = data.map(item => ({
+        mood: item.mood as MoodType,
+        timestamp: new Date(item.timestamp),
+      }));
+      setMoodEntries(entries);
+    }
+    setIsLoading(false);
+  };
 
   const handleMoodSelect = (mood: MoodType) => {
     setSelectedMood(mood);
   };
 
-  const handleSaveMood = () => {
-    if (selectedMood) {
+  const handleSaveMood = async () => {
+    if (selectedMood && user?.id) {
+      const timestamp = new Date();
+      
+      // Save to database
+      const { error } = await supabase
+        .from('moods')
+        .insert({
+          user_id: user.id,
+          mood: selectedMood,
+          timestamp: timestamp.toISOString(),
+        });
+
+      if (error) {
+        console.error('Error saving mood:', error);
+        toast({
+          title: "Error saving mood",
+          description: "Could not save your mood. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
       const newEntry: MoodEntry = {
         mood: selectedMood,
-        timestamp: new Date(),
+        timestamp,
       };
       setMoodEntries([newEntry, ...moodEntries]);
       
@@ -59,8 +120,11 @@ export const MoodTracker = () => {
   return (
     <div className="min-h-screen bg-gradient-calm">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
+        {/* Header with Theme Toggle */}
+        <div className="text-center mb-8 relative">
+          <div className="absolute right-0 top-0">
+            <ThemeToggle />
+          </div>
           <div className="flex items-center justify-center gap-2 mb-4">
             <Heart className="w-8 h-8 text-primary" />
             <h1 className="text-3xl font-bold text-foreground">Wellness Tracker</h1>
